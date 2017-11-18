@@ -20,9 +20,6 @@ public class DigitalSignature {
         return new BigInteger(hexString.replaceAll("\\s+",""), 16);
     }
 
-
-
-
     //Used to calculate secret key x
     //TODO link this? https://stackoverflow.com/questions/3735664/randomizing-a-biginteger
     private static BigInteger bigIntInRange(BigInteger min, BigInteger max){
@@ -57,25 +54,50 @@ public class DigitalSignature {
         return y;
     }
 
-    public static void main(String [] args){
-        BigInteger pBigInt = hexStringToBigInt(pHexString);
-        BigInteger gBigInt = hexStringToBigInt(gHexString);
+    private static BigInteger gcd(BigInteger bigIntA, BigInteger bigIntB){
+        // Use Euclidean Algorithm of:
+        //      gcd(a,0) = a
+        //      gcd(a,b) = gcd(b, a mod b)
 
-        System.out.println("p: " + pBigInt.toString() + "\np bitlength: " + pBigInt.bitLength());
-        System.out.println("g: " + pBigInt.toString() + "\ng bitlength: " + gBigInt.bitLength());
+        // Base case gcd(a,0) = a
+        if(bigIntB.compareTo(BigInteger.ZERO) == 0){
+            return bigIntA;
+        }
+
+        //Recursive case gcd(a,b) = gcd(b, a mod b)
+        else{
+            return gcd(bigIntB, bigIntA.mod(bigIntB));
+        }
+    }
+
+    //From spec: random value k with 0 < k < p-1 and gcd(k,p-1) = 1
+    private static BigInteger generateK(BigInteger pMinusOne){
+        BigInteger k = bigIntInRange(BigInteger.ZERO, pMinusOne);
+
+        int count = 0;
+        //So far while testing I've only seen a max of 6 iterations of the loop.
+        while(gcd(k,pMinusOne).compareTo(BigInteger.ONE) != 0)
+        {
+            k = bigIntInRange(BigInteger.ZERO, pMinusOne);
+            count++;
+        }
+
+        System.out.println("Count for generate k: " + count);
+        return k;
+    }
+
+    public static void main(String [] args){
+        BigInteger primeModulusP = hexStringToBigInt(pHexString);
+        BigInteger generatorG = hexStringToBigInt(gHexString);
 
         //Calculate secret key x
-        BigInteger secretKeyX = bigIntInRange(new BigInteger("1"), pBigInt.subtract(new BigInteger("1"))); //make temp big int 1
-        System.out.println("x: " + secretKeyX.toString() + "\nx bitlength: " + secretKeyX.bitLength());
+        BigInteger secretKeyX = bigIntInRange(BigInteger.ONE, primeModulusP.subtract(BigInteger.ONE));
 
         //Calculate public key y
-        BigInteger publicKeyY = modularExponentiation(gBigInt, secretKeyX,pBigInt);
-        System.out.println("y: " + publicKeyY.toString() + "\ny bitlength: " + publicKeyY.bitLength());
+        BigInteger publicKeyY = modularExponentiation(generatorG, secretKeyX,primeModulusP);
 
-        //Todo remove this. Test that modularExponentiation worked correctly
-        //todo              by comparing to built in method.
-        System.out.println("Comparison operator for modPow: " + publicKeyY.compareTo(gBigInt.modPow(secretKeyX,pBigInt)));
-
+        //Generate k
+        BigInteger randomK = generateK(primeModulusP.subtract(BigInteger.ONE));
     }
 
 
