@@ -98,6 +98,9 @@ public class DigitalSignature {
 
         //Generate k
         BigInteger randomK = generateK(primeModulusP.subtract(BigInteger.ONE));
+
+        //Generate r
+        BigInteger digitalSigntaureValueR = modularExponentiation(generatorG,randomK,primeModulusP);
     }
 
 
