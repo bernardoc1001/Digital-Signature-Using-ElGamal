@@ -42,6 +42,21 @@ public class DigitalSignature {
         return x;
     }
 
+    //Right to left variant of calculating modular exponentiation.
+    //Taken from my submission in assignment 1. Renamed method from performRSA to modularExponentiation
+    private static BigInteger modularExponentiation(BigInteger base, BigInteger exponent, BigInteger mod){
+        BigInteger y = new BigInteger("1");
+        for(int i = 0; i < exponent.bitLength(); i++){
+            if (exponent.testBit(i)) {
+                y = y.multiply(base);
+                y = y.mod(mod);
+            }
+            base = base.multiply(base);
+            base = base.mod(mod);
+        }
+        return y;
+    }
+
     public static void main(String [] args){
         BigInteger pBigInt = hexStringToBigInt(pHexString);
         BigInteger gBigInt = hexStringToBigInt(gHexString);
@@ -52,6 +67,15 @@ public class DigitalSignature {
         //Calculate secret key x
         BigInteger secretKeyX = bigIntInRange(new BigInteger("1"), pBigInt.subtract(new BigInteger("1"))); //make temp big int 1
         System.out.println("x: " + secretKeyX.toString() + "\nx bitlength: " + secretKeyX.bitLength());
+
+        //Calculate public key y
+        BigInteger publicKeyY = modularExponentiation(gBigInt, secretKeyX,pBigInt);
+        System.out.println("y: " + publicKeyY.toString() + "\ny bitlength: " + publicKeyY.bitLength());
+
+        //Todo remove this. Test that modularExponentiation worked correctly
+        //todo              by comparing to built in method.
+        System.out.println("Comparison operator for modPow: " + publicKeyY.compareTo(gBigInt.modPow(secretKeyX,pBigInt)));
+
     }
 
 
