@@ -1,6 +1,11 @@
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.*;
 import java.util.Random;
+import java.util.Scanner;
 import javax.crypto.*;
 
 public class DigitalSignature {
@@ -116,6 +121,25 @@ public class DigitalSignature {
     }
 
 
+    private static byte[] readAndHashFile() throws IOException, NoSuchAlgorithmException{
+        //Read in file
+        Scanner scan = new Scanner(System.in, "UTF-8");
+        System.out.println("Enter the path to the file: ");
+        Path filePath = Paths.get(scan.next());
+        try {
+            byte[] fileData = Files.readAllBytes(filePath);
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return digest.digest(fileData); //the hashed file
+
+        }
+        catch(IOException |NoSuchAlgorithmException e){
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+
+
     public static void main(String [] args){
         BigInteger primeModulusP = hexStringToBigInt(pHexString);
         BigInteger generatorG = hexStringToBigInt(gHexString);
@@ -126,12 +150,22 @@ public class DigitalSignature {
         //Calculate public key y
         BigInteger publicKeyY = modularExponentiation(generatorG, secretKeyX,primeModulusP);
 
+
+
         //Generate k
         BigInteger randomK = generateK(primeModulusP.subtract(BigInteger.ONE));
 
         //Generate r
         BigInteger digitalSigntaureValueR = modularExponentiation(generatorG,randomK,primeModulusP);
 
+        //Read in and hash the file
+        try {
+            byte[] hashedFile = readAndHashFile();
+            
+        } catch (IOException | NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
     }
 
 }
