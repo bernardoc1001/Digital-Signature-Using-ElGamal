@@ -31,7 +31,7 @@ public class DigitalSignature {
     private final static BigInteger GENERATOR_G = hexStringToBigInt(G_HEX_STRING);
 
     //Used to calculate secret key x
-    //TODO link this? https://stackoverflow.com/questions/3735664/randomizing-a-biginteger
+    //learned about compare to and the random constructor from https://stackoverflow.com/questions/3735664/randomizing-a-biginteger
     private static BigInteger bigIntInRange(BigInteger min, BigInteger max){
         Random rnd = new Random();
 
@@ -141,7 +141,7 @@ public class DigitalSignature {
         BigInteger kMultiplicativeInverse = multiplicativeInverse(randomK, PRIME_MODULUS_P.subtract(BigInteger.ONE));
 
         //compute s as H(m)-xr * k^-1 mod(p-1)
-        BigInteger s = hmMinusXR.multiply(kMultiplicativeInverse);
+        BigInteger s = hmMinusXR.multiply(kMultiplicativeInverse).mod(PRIME_MODULUS_P.subtract(BigInteger.ONE));
 
         //if s == 0 start over again
         if(s.compareTo(BigInteger.ZERO) == 0)
@@ -173,6 +173,41 @@ public class DigitalSignature {
         printwriter.close();
     }
 
+
+    private static boolean verify(String hexPublicKeyY,
+                                  String hexR,
+                                  String hexS,
+                                  byte[] unhashedFile) throws NoSuchAlgorithmException{
+        BigInteger y = hexStringToBigInt(hexPublicKeyY);
+        BigInteger r = hexStringToBigInt(hexR);
+        BigInteger s = hexStringToBigInt(hexS);
+
+        MessageDigest digest = null;
+        try {
+            digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashedFile = digest.digest(unhashedFile); //the hashed file
+            BigInteger hm = new BigInteger(hashedFile);
+
+            boolean rCheck = (r.compareTo(BigInteger.ZERO) > 0) && (r.compareTo(PRIME_MODULUS_P) < 0);
+            boolean sCheck = (s.compareTo(BigInteger.ZERO) > 0) && (s.compareTo(PRIME_MODULUS_P.subtract(BigInteger.ONE)) < 0);
+
+
+            //g^H(m) (mod p)
+            BigInteger gHmModP = modularExponentiation(GENERATOR_G, hm,PRIME_MODULUS_P).mod(PRIME_MODULUS_P);
+            //(y^r)(r^s) (mod p)
+            BigInteger yRrSModP = modularExponentiation(y,r,PRIME_MODULUS_P).multiply(modularExponentiation(r,s,PRIME_MODULUS_P)).mod(PRIME_MODULUS_P);
+
+            boolean signatureCheck = gHmModP.compareTo(yRrSModP) == 0;
+
+            System.out.println("rCheck: " + rCheck + "\nsCheck " + sCheck + "\nSignature Check: " + signatureCheck);
+            return rCheck && sCheck && signatureCheck;
+
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            throw new NoSuchAlgorithmException(e);
+        }
+    }
+
     public static void main(String [] args){
         //Calculate secret key x
         BigInteger secretKeyX = bigIntInRange(BigInteger.ONE, PRIME_MODULUS_P.subtract(BigInteger.ONE));
@@ -200,6 +235,16 @@ public class DigitalSignature {
             String outputFilePath = filePath.toString() + "-assignment-output.txt";
             writeAssignmentHandInToFile(outputFilePath, publicKeyY, digitalSignature, fileData, hashedFile);
 
+
+            //Verify
+            // Declare variables here to make testing values from other runs manually at a later date easier, just copy and paste to here
+            String hexY = publicKeyY.toString(16);
+            String hexR = digitalSignature[0].toString(16);
+            String hexS = digitalSignature[1].toString(16);
+            byte[] unhashedMessage = fileData;
+
+            //Run verification
+            System.out.println("Verified: " + verify(hexY,hexR,hexS,unhashedMessage));
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
             System.exit(-1);
