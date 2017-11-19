@@ -54,19 +54,19 @@ public class DigitalSignature {
         return y;
     }
 
-    private static BigInteger gcd(BigInteger bigIntA, BigInteger bigIntB){
+    private static BigInteger gcd(BigInteger a, BigInteger b){
         // Use Euclidean Algorithm of:
         //      gcd(a,0) = a
         //      gcd(a,b) = gcd(b, a mod b)
 
         // Base case gcd(a,0) = a
-        if(bigIntB.compareTo(BigInteger.ZERO) == 0){
-            return bigIntA;
+        if(b.compareTo(BigInteger.ZERO) == 0){
+            return a;
         }
 
         //Recursive case gcd(a,b) = gcd(b, a mod b)
         else{
-            return gcd(bigIntB, bigIntA.mod(bigIntB));
+            return gcd(b, a.mod(b));
         }
     }
 
@@ -86,6 +86,22 @@ public class DigitalSignature {
         return k;
     }
 
+
+    //Explanation of pseudo-code: https://www.csee.umbc.edu/~chang/cs203.s09/exteuclid.shtml
+    private static BigInteger[] xgcd(BigInteger a, BigInteger b){
+        if(b.compareTo(BigInteger.ZERO) == 0){
+            return new BigInteger[] {a, BigInteger.ONE, BigInteger.ZERO}; // base case if b == 0 return (a,1,0)
+        }
+
+        //where recursiveCall = {d1, s1, t1}
+        BigInteger[] recursiveCall = xgcd(b, a.mod(b));
+        BigInteger d = recursiveCall[0]; //d = d1
+        BigInteger s = recursiveCall[2]; //s = t1
+        BigInteger t = recursiveCall[1].subtract(a.divide(b).multiply(recursiveCall[2])); //t = s1 - (a div b) * t1
+        return new BigInteger[] {d,s,t};
+    }
+
+
     public static void main(String [] args){
         BigInteger primeModulusP = hexStringToBigInt(pHexString);
         BigInteger generatorG = hexStringToBigInt(gHexString);
@@ -101,7 +117,13 @@ public class DigitalSignature {
 
         //Generate r
         BigInteger digitalSigntaureValueR = modularExponentiation(generatorG,randomK,primeModulusP);
-    }
 
+
+        /*
+        //TODO testing extEuclid
+        BigInteger[] result = extEuclid(new BigInteger("421"), new BigInteger("111"));
+        System.out.println("d = " + result[0] +"\ns = " + result[1] + "\nt = " + result[2]);
+        */
+    }
 
 }
