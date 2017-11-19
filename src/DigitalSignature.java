@@ -102,6 +102,20 @@ public class DigitalSignature {
     }
 
 
+    //From your number theory notes http://www.computing.dcu.ie/~hamilton/teaching/CA4005/notes/Number1.pdf
+    private static BigInteger multiplicativeInverse(BigInteger a, BigInteger N) throws ArithmeticException {
+        //ensure gcd is one, i.e ensure d == 1
+        BigInteger[] xgcdResult = xgcd(a,N);
+
+        if(xgcdResult[0].compareTo(BigInteger.ONE) == 0){ //if d == 1
+            return xgcdResult[1].mod(N); //return s mod N where s == x from the notes
+        }
+        else{
+            throw new ArithmeticException("No modular inverse as d != 1. d == " + xgcdResult[0].toString());
+        }
+    }
+
+
     public static void main(String [] args){
         BigInteger primeModulusP = hexStringToBigInt(pHexString);
         BigInteger generatorG = hexStringToBigInt(gHexString);
@@ -118,12 +132,6 @@ public class DigitalSignature {
         //Generate r
         BigInteger digitalSigntaureValueR = modularExponentiation(generatorG,randomK,primeModulusP);
 
-
-        /*
-        //TODO testing extEuclid
-        BigInteger[] result = extEuclid(new BigInteger("421"), new BigInteger("111"));
-        System.out.println("d = " + result[0] +"\ns = " + result[1] + "\nt = " + result[2]);
-        */
     }
 
 }
