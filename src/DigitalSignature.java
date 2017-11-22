@@ -118,7 +118,7 @@ public class DigitalSignature {
         BigInteger[] xgcdResult = xgcd(a,N);
 
         if(xgcdResult[0].compareTo(BigInteger.ONE) == 0){ //if d == 1
-            return xgcdResult[1].mod(N); //return s mod N where s == x from the notes
+            return xgcdResult[1].mod(N); //return s mod N where s == x from the notes (page 8/16) http://www.computing.dcu.ie/~hamilton/teaching/CA4005/notes/Number1.pdf
         }
         else{
             throw new ArithmeticException("No modular inverse as d != 1. d == " + xgcdResult[0].toString());
@@ -193,7 +193,7 @@ public class DigitalSignature {
 
 
             //g^H(m) (mod p)
-            BigInteger gHmModP = modularExponentiation(GENERATOR_G, hm,PRIME_MODULUS_P).mod(PRIME_MODULUS_P);
+            BigInteger gHmModP = modularExponentiation(GENERATOR_G, hm,PRIME_MODULUS_P);
             //(y^r)(r^s) (mod p)
             BigInteger yRrSModP = modularExponentiation(y,r,PRIME_MODULUS_P).multiply(modularExponentiation(r,s,PRIME_MODULUS_P)).mod(PRIME_MODULUS_P);
 
