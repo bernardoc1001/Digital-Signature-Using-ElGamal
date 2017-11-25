@@ -158,11 +158,13 @@ public class DigitalSignature {
     private static void writeAssignmentHandInToFile(String outputPath,
                                                     BigInteger publicKeyY,
                                                     BigInteger[] digitalSignature,
+                                                    BigInteger secretKeyX,
                                                     byte[] unhashedFile,
                                                     byte[] hashedFile) throws IOException {
         PrintWriter printwriter = new PrintWriter(outputPath, "UTF-8");
         System.out.println("Writing assignment hand-in details to: " + outputPath);
         printwriter.println("Public Key Y: " + publicKeyY.toString(16));
+        printwriter.println("\nSecret Key X: " + secretKeyX.toString(16)); //Include X just in case
         printwriter.println("\nDigital Signature Value R: " + digitalSignature[0].toString(16));
         printwriter.println("\nDigital Signature Value S: " +  digitalSignature[1].toString(16));
 
@@ -233,7 +235,7 @@ public class DigitalSignature {
 
             //Write the assignment results to a file
             String outputFilePath = filePath.toString() + "-assignment-output.txt";
-            writeAssignmentHandInToFile(outputFilePath, publicKeyY, digitalSignature, fileData, hashedFile);
+            writeAssignmentHandInToFile(outputFilePath, publicKeyY, digitalSignature, secretKeyX, fileData, hashedFile);
 
 
             //Verify
